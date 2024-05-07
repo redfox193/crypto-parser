@@ -112,7 +112,7 @@ services:
     command: ['alembic', 'upgrade', 'head']
     depends_on:
       pgdb:
-        condition: service_started
+        condition: service_healthy
 
   pgdb:
     image: postgres:13.3
@@ -125,6 +125,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "postgres", "-t", "1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 networks:
   kafka_network:
