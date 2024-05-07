@@ -13,7 +13,7 @@ services:
       - './init-kafka-broker.sh:/etc/confluent/docker/init-kafka-broker.sh:ro'
       - './kafka_server_jaas.conf:/kafka_server_jaas.conf:ro'
     command: /bin/bash /etc/confluent/docker/init-kafka-broker.sh
-    env_file: ../../.env.example
+    env_file: ../../.env
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
