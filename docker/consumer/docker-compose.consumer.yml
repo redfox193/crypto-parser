@@ -1,0 +1,11 @@
+version: '3.6'
+
+services:
+  consumer:
+    build:
+      context: ../../src/crypto
+      dockerfile: consumer.Dockerfile
+    env_file: ../../.env.example
+    environment:
+      CONTAINER_MODE: 1
+    command: ["python", "consumer/consume.py"]

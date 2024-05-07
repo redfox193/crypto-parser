@@ -1,0 +1,134 @@
+version: '3.6'
+
+services:
+  zookeeper:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/zookeeper/docker-compose.zookeeper.yml
+      service: zookeeper
+
+  broker1:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/kafka/docker-compose.kafka.yml
+      service: broker1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  schemaregistry:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/schemaregistry/docker-compose.schemaregistry.yml
+      service: schemaregistry
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  control-center:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/control-center/docker-compose.control-center.yml
+      service: control-center
+    depends_on:
+      broker1:
+        condition: service_healthy
+      schemaregistry:
+        condition: service_healthy
+
+  # producers
+  producer-btc:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/producer/docker-compose.producer.yml
+      service: producer
+    environment:
+      SYMBOL: BTC
+    depends_on:
+      broker1:
+        condition: service_healthy
+
+  producer-eth:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/producer/docker-compose.producer.yml
+      service: producer
+    environment:
+      SYMBOL: ETH
+    depends_on:
+      broker1:
+        condition: service_healthy
+
+  producer-ltc:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/producer/docker-compose.producer.yml
+      service: producer
+    environment:
+      SYMBOL: LTC
+    depends_on:
+      broker1:
+        condition: service_healthy
+
+  # consumers
+  consumer1:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/consumer/docker-compose.consumer.yml
+      service: consumer
+    depends_on:
+      broker1:
+        condition: service_healthy
+      initdb:
+        condition: service_completed_successfully
+
+  consumer2:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/consumer/docker-compose.consumer.yml
+      service: consumer
+    depends_on:
+      broker1:
+        condition: service_healthy
+      initdb:
+        condition: service_completed_successfully
+
+  # database
+  initdb:
+    networks:
+      - kafka_network
+    extends:
+      file: docker/database/docker-compose.initdb.yml
+      service: initdb
+    command: ['alembic', 'upgrade', 'head']
+    depends_on:
+      pgdb:
+        condition: service_started
+
+  pgdb:
+    image: postgres:13.3
+    networks:
+      - kafka_network
+    volumes:
+      - pgdb_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+    ports:
+      - "5432:5432"
+
+networks:
+  kafka_network:
+    name: kafka_docker_net
+
+volumes:
+  pgdb_data:
