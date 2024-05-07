@@ -4,7 +4,7 @@ Producers sends data about cryptocurrency to [Kafka](https://kafka.apache.org/),
  consumers read it and save into database, from where data can be used for
 analyzing or other things.
 
-Buy using producers it's easy to scale our service to collect data
+By using producers it's easy to scale our service to collect data
 about more currencies. And you can add more consumers to proccess
 data faster.
 
